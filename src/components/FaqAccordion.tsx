@@ -34,7 +34,8 @@ export function FaqAccordion({ items, defaultOpenIndex = 0 }: FaqAccordionProps)
             <Search className="h-5 w-5" />
           </div>
           <input
-            type="text"
+            type="search"
+            aria-label="Search frequently asked questions"
             placeholder="Search questions (e.g. manual, provisional licence, 2026 test rules, prices)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -43,16 +44,17 @@ export function FaqAccordion({ items, defaultOpenIndex = 0 }: FaqAccordionProps)
         </div>
 
         {/* Category Pills */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="FAQ Categories">
           {faqCategories.map((cat) => (
             <button
               key={cat}
               type="button"
+              aria-pressed={activeCategory === cat}
               onClick={() => {
                 setActiveCategory(cat);
                 setOpenIndex(null);
               }}
-              className={`rounded-full px-4 py-2 text-xs font-black transition-all ${
+              className={`rounded-full px-4 py-2 text-xs font-black transition-all cursor-pointer ${
                 activeCategory === cat
                   ? "bg-[var(--navy)] text-white shadow-md"
                   : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-[var(--navy)]"

@@ -40,6 +40,7 @@ export default function AboutPage() {
                   src="/images/learner-01.jpg"
                   alt="Learner holding driving test pass certificate beside instructor car"
                   fill
+                  sizes="(max-width: 1024px) 100vw, 500px"
                   className="object-cover"
                   priority
                 />

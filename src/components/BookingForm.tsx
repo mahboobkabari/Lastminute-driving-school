@@ -185,16 +185,18 @@ function BookingFormInner() {
 
             {/* Transmission Radio Buttons */}
             <div>
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
+              <span id="trans-label" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Transmission Preference <span className="text-red-500">*</span>
               </span>
-              <div className="mt-2 grid grid-cols-3 gap-2">
+              <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="trans-label">
                 {(["Manual", "Automatic", "Not sure yet"] as const).map((trans) => (
                   <button
                     key={trans}
                     type="button"
+                    role="radio"
+                    aria-checked={formData.transmission === trans}
                     onClick={() => setFormData({ ...formData, transmission: trans })}
-                    className={`rounded-xl py-3 px-2 text-center text-xs font-black transition-all ${
+                    className={`rounded-xl py-3 px-2 text-center text-xs font-black transition-all cursor-pointer ${
                       formData.transmission === trans
                         ? "bg-[var(--navy)] text-white shadow-md"
                         : "bg-[var(--surface)] text-slate-700 border border-slate-200 hover:bg-slate-100"
@@ -358,7 +360,8 @@ function BookingFormInner() {
             <button
               type="submit"
               disabled={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--red)] py-4 text-center text-base font-black tracking-tight text-white shadow-xl shadow-red-900/20 transition-all hover:bg-[var(--red-dark)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+              aria-busy={submitting}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--red)] py-4 text-center text-base font-black tracking-tight text-white shadow-xl shadow-red-900/20 transition-all hover:bg-[var(--red-dark)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 cursor-pointer"
             >
               {submitting ? (
                 <span>Submitting Request...</span>

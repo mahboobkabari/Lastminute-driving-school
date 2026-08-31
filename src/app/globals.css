@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@theme {
+  --color-navy: #071a33;
+  --color-navy-dark: #051326;
+  --color-navy-2: #0d2a4f;
+  --color-navy-light: #133966;
+  --color-red: #d71920;
+  --color-red-dark: #b51218;
+  --color-red-subtle: #fff1f2;
+  --color-ink: #102033;
+  --color-ink-secondary: #334155;
+  --color-muted: #607086;
+  --color-line: #e5eaf0;
+  --color-surface: #f6f8fb;
+  --color-surface-alt: #f1f5f9;
+}
+
 :root {
   --navy: #071a33;
   --navy-dark: #051326;
@@ -78,6 +94,22 @@ button, input, select, textarea {
   text-transform: uppercase;
   font-size: 0.75rem;
   font-weight: 800;
+}
+
+/* Keyframe animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Custom interactive transitions */

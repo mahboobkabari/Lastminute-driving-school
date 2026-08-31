@@ -20,6 +20,7 @@ export function InstructorCard({ instructor }: InstructorCardProps) {
               src={image}
               alt={`Driving instructor ${name} with learner and tuition car`}
               fill
+              sizes="(max-width: 1024px) 100vw, 450px"
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />

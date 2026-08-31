@@ -96,6 +96,7 @@ export default function HomePage() {
                 src="/images/learner-04.jpg"
                 alt="Successful learner standing beside driving school tuition car after passing their practical driving test in London"
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
                 className="object-cover"
                 priority
               />
