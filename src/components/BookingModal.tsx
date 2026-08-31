@@ -112,9 +112,13 @@ export function BookingModalProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Close modal automatically if route changes
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    if (isOpen) {
+      setIsOpen(false);
+    }
+  }
 
   // Handle Escape key and focus trap
   useEffect(() => {

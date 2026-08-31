@@ -3,11 +3,14 @@
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useState, useEffect, Suspense, useRef } from "react";
 import { courses } from "@/data/courses";
-import { Check, Shield, Clock, Calendar, MapPin, Sparkles } from "./Icon";
+import { defaultCountry, validatePhoneNumber, normalizePhoneNumber, Country } from "@/data/countries";
+import { PhoneInput } from "./PhoneInput";
+import { Check, Shield, MapPin } from "./Icon";
 
 interface FormState {
   fullName: string;
   phone: string;
+  countryCode: string;
   email: string;
   course: string;
   transmission: "Manual" | "Automatic" | "Not sure yet";
@@ -39,6 +42,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
   const [formData, setFormData] = useState<FormState>(() => ({
     fullName: "",
     phone: "",
+    countryCode: defaultCountry.dialCode,
     email: "",
     course: prefilledCourse || "Beginner Driving Course",
     transmission: "Manual",
@@ -49,22 +53,117 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
     message: "",
   }));
 
-  // Update course when initialCourse prop changes
-  useEffect(() => {
-    if (initialCourse) {
+  // Synchronize initialCourse prop updates cleanly
+  const [prevInitialCourse, setPrevInitialCourse] = useState(initialCourse);
+  if (initialCourse !== prevInitialCourse) {
+    setPrevInitialCourse(initialCourse);
+    if (initialCourse && initialCourse !== formData.course) {
       setFormData((prev) => ({ ...prev, course: initialCourse }));
     }
-  }, [initialCourse]);
+  }
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedPhone, setSubmittedPhone] = useState("");
+
+  // Location autofill states
+  const [locating, setLocating] = useState(false);
+  const [locationFeedback, setLocationFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (submitted && containerRef.current) {
       containerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [submitted]);
+
+  // Handle "Use my location" button click
+  async function handleUseLocation() {
+    if (typeof window === "undefined" || !("geolocation" in navigator)) {
+      setLocationFeedback({
+        type: "error",
+        message: "Geolocation is not supported by your browser. Please enter your address manually.",
+      });
+      return;
+    }
+
+    setLocating(true);
+    setLocationFeedback(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(`/api/geocode?lat=${latitude}&lng=${longitude}`);
+          
+          if (!res.ok) {
+            throw new Error("Unable to resolve address from coordinates.");
+          }
+
+          const data = await res.json();
+
+          if (data.success && (data.formatted || data.postcode || data.area)) {
+            const detectedLocation =
+              data.formatted ||
+              (data.area && data.postcode ? `${data.area}, ${data.postcode}` : data.postcode || data.area);
+
+            setFormData((prev) => ({
+              ...prev,
+              pickupLocation: detectedLocation,
+            }));
+
+            // Clear any previous error on pickup location
+            setErrors((prev) => ({ ...prev, pickupLocation: undefined }));
+
+            setLocationFeedback({
+              type: "success",
+              message: `Location added: ${detectedLocation}`,
+            });
+
+            // Automatically hide success feedback after 6 seconds
+            setTimeout(() => {
+              setLocationFeedback((current) => (current?.type === "success" ? null : current));
+            }, 6000);
+          } else {
+            setLocationFeedback({
+              type: "error",
+              message: data.error || "Could not find postcode for current location. Please enter manually.",
+            });
+          }
+        } catch {
+          setLocationFeedback({
+            type: "error",
+            message: "Unable to retrieve address details. Please enter your postcode manually.",
+          });
+        } finally {
+          setLocating(false);
+        }
+      },
+      (geoError) => {
+        setLocating(false);
+        let errorMsg = "Unable to get your location. Please enter your address manually.";
+        if (geoError.code === geoError.PERMISSION_DENIED) {
+          errorMsg = "Location access was denied. Please enter your address manually.";
+        } else if (geoError.code === geoError.POSITION_UNAVAILABLE) {
+          errorMsg = "Location position is currently unavailable. Please enter your address manually.";
+        } else if (geoError.code === geoError.TIMEOUT) {
+          errorMsg = "Location lookup timed out. Please enter your address manually.";
+        }
+        setLocationFeedback({
+          type: "error",
+          message: errorMsg,
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  }
 
   function validate(): boolean {
     const errs: FormErrors = {};
@@ -73,11 +172,10 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
       errs.fullName = "Please enter your full name";
     }
 
-    const phoneClean = formData.phone.replace(/\s+/g, "");
-    if (!phoneClean) {
-      errs.phone = "Please enter your contact phone number";
-    } else if (!/^((\+44)|(0))7\d{9}$/.test(phoneClean) && !/^((\+44)|(0))\d{9,10}$/.test(phoneClean)) {
-      errs.phone = "Please enter a valid UK phone number (e.g. 07984 210509)";
+    // Phone validation with international country code support
+    const phoneValidation = validatePhoneNumber(formData.countryCode, formData.phone);
+    if (!phoneValidation.isValid) {
+      errs.phone = phoneValidation.errorMessage || "Please enter a valid contact phone number";
     }
 
     if (!formData.email.trim()) {
@@ -102,6 +200,9 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
     e.preventDefault();
     if (!validate()) return;
 
+    // Normalize phone number cleanly before submission
+    const normalized = normalizePhoneNumber(formData.countryCode, formData.phone);
+    setSubmittedPhone(normalized || formData.phone);
     setSubmitting(true);
 
     // Simulate network submission latency
@@ -152,7 +253,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               <strong>{formData.preferredTime}</strong>).
             </p>
             <p>
-              2. We will contact you directly via phone (<strong>{formData.phone}</strong>) or email (
+              2. We will contact you directly via phone (<strong>{submittedPhone || formData.phone}</strong>) or email (
               <strong>{formData.email}</strong>) within 24 hours to confirm your first lesson time and exact door-to-door pickup location.
             </p>
             <p>
@@ -172,6 +273,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               setFormData({
                 fullName: "",
                 phone: "",
+                countryCode: defaultCountry.dialCode,
                 email: "",
                 course: "Beginner Driving Course",
                 transmission: "Manual",
@@ -181,6 +283,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
                 experienceLevel: "Complete Beginner",
                 message: "",
               });
+              setLocationFeedback(null);
               setTimeout(() => {
                 containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               }, 50);
@@ -191,7 +294,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} noValidate className="space-y-6 w-full max-w-full min-w-0">
+        <form onSubmit={handleSubmit} noValidate suppressHydrationWarning className="space-y-6 w-full max-w-full min-w-0">
           <div className="border-b border-slate-100 pb-4">
             <div className="text-xs font-black uppercase tracking-wider text-[var(--red)]">
               Step 1 of 2: Course & Preferences
@@ -209,6 +312,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               </label>
               <select
                 id="course-select"
+                suppressHydrationWarning
                 value={formData.course}
                 onChange={(e) => setFormData({ ...formData, course: e.target.value })}
                 className={`${inputStyles} ${errors.course ? errorStyles : ""}`}
@@ -237,6 +341,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
                     key={trans}
                     type="button"
                     role="radio"
+                    suppressHydrationWarning
                     aria-checked={formData.transmission === trans}
                     onClick={() => setFormData({ ...formData, transmission: trans })}
                     className={`rounded-xl py-3 px-1 sm:px-2 text-center text-[11px] sm:text-xs font-black transition-all cursor-pointer min-w-0 truncate ${
@@ -258,6 +363,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               </label>
               <select
                 id="exp-level"
+                suppressHydrationWarning
                 value={formData.experienceLevel}
                 onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })}
                 className={inputStyles}
@@ -279,6 +385,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
                 <input
                   id="pref-date"
                   type="date"
+                  suppressHydrationWarning
                   min={new Date().toISOString().split("T")[0]}
                   value={formData.preferredDate}
                   onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
@@ -294,6 +401,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               </label>
               <select
                 id="pref-time"
+                suppressHydrationWarning
                 value={formData.preferredTime}
                 onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
                 className={inputStyles}
@@ -324,6 +432,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               <input
                 id="full-name"
                 type="text"
+                suppressHydrationWarning
                 placeholder="e.g. Sarah Jenkins"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -332,18 +441,22 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               {errors.fullName && <p className="mt-1.5 text-xs font-bold text-red-600">{errors.fullName}</p>}
             </div>
 
-            {/* Phone Number */}
+            {/* Phone Number with International Country Code Selector */}
             <div className="min-w-0">
               <label htmlFor="phone-number" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
-                UK Phone Number <span className="text-red-500">*</span>
+                Contact Phone Number <span className="text-red-500">*</span>
               </label>
-              <input
+              <PhoneInput
                 id="phone-number"
-                type="tel"
-                placeholder="07984 210509"
+                name="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className={`${inputStyles} ${errors.phone ? errorStyles : ""}`}
+                countryCode={formData.countryCode}
+                onChange={(phone) => setFormData({ ...formData, phone })}
+                onCountryChange={(country: Country) =>
+                  setFormData({ ...formData, countryCode: country.dialCode })
+                }
+                hasError={Boolean(errors.phone)}
+                required
               />
               {errors.phone && <p className="mt-1.5 text-xs font-bold text-red-600">{errors.phone}</p>}
             </div>
@@ -356,6 +469,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               <input
                 id="email-addr"
                 type="email"
+                suppressHydrationWarning
                 placeholder="sarah@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -364,14 +478,38 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               {errors.email && <p className="mt-1.5 text-xs font-bold text-red-600">{errors.email}</p>}
             </div>
 
-            {/* Pickup Postcode / Area */}
+            {/* Pickup Postcode / Area with "Use my location" button */}
             <div className="min-w-0">
-              <label htmlFor="pickup-loc" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
-                Pickup Postcode or Street Area <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                <label htmlFor="pickup-loc" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
+                  Pickup Postcode or Street Area <span className="text-red-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  suppressHydrationWarning
+                  onClick={handleUseLocation}
+                  disabled={locating}
+                  aria-label="Use my current location to autofill pickup area and postcode"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 hover:text-[var(--navy)] hover:border-slate-300 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+                >
+                  {locating ? (
+                    <>
+                      <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-slate-400 border-t-red-600" aria-hidden="true" />
+                      <span>Finding your location...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="h-3.5 w-3.5 text-[var(--red)] shrink-0" />
+                      <span>Use my location</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
               <input
                 id="pickup-loc"
                 type="text"
+                suppressHydrationWarning
                 placeholder="e.g. W9 3AP / Maida Vale"
                 value={formData.pickupLocation}
                 onChange={(e) => setFormData({ ...formData, pickupLocation: e.target.value })}
@@ -379,6 +517,26 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               />
               {errors.pickupLocation && (
                 <p className="mt-1.5 text-xs font-bold text-red-600">{errors.pickupLocation}</p>
+              )}
+
+              {/* Location Status Feedback Banner */}
+              {locationFeedback && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className={`mt-2 flex items-start gap-2 text-xs font-semibold rounded-xl p-2.5 animate-fadeIn ${
+                    locationFeedback.type === "success"
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                      : "bg-amber-50 text-amber-900 border border-amber-200"
+                  }`}
+                >
+                  {locationFeedback.type === "success" ? (
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <span className="text-amber-600 shrink-0 text-sm leading-none" aria-hidden="true">⚠️</span>
+                  )}
+                  <span>{locationFeedback.message}</span>
+                </div>
               )}
             </div>
 
@@ -390,6 +548,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
               <textarea
                 id="message-box"
                 rows={4}
+                suppressHydrationWarning
                 placeholder="Tell us about any specific anxieties, upcoming test dates, test centre location, or schedule constraints..."
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -402,6 +561,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
           <div className="pt-2 w-full max-w-full min-w-0">
             <button
               type="submit"
+              suppressHydrationWarning
               disabled={submitting}
               aria-busy={submitting}
               className="flex w-full max-w-full min-w-0 items-center justify-center gap-2 rounded-2xl bg-[var(--red)] py-4 text-center text-sm sm:text-base font-black tracking-tight text-white shadow-xl shadow-red-900/20 transition-all hover:bg-[var(--red-dark)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 cursor-pointer"

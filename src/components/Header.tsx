@@ -27,9 +27,13 @@ export function Header() {
   const { openBookingModal } = useBookingModal();
 
   // Automatically close mobile menu whenever pathname changes
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    if (open) {
+      setOpen(false);
+    }
+  }
 
   // Track scroll position for header blur and background shift
   useEffect(() => {
