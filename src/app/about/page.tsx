@@ -3,6 +3,7 @@ import Link from "next/link";
 import { InnerHero, PageFooter } from "@/components/InnerHero";
 import { SectionHeading } from "@/components/SectionHeading";
 import { CallToAction } from "@/components/CallToAction";
+import { BookingButton } from "@/components/BookingModal";
 import { Check, Star, Shield, Car, Award, ArrowRight } from "@/components/Icon";
 import { site } from "@/data/site";
 import { instructors } from "@/data/instructors";
@@ -137,13 +138,13 @@ export default function AboutPage() {
                 </div>
 
                 <div className="pt-4 flex flex-wrap gap-3">
-                  <Link
-                    href="/book"
-                    className="inline-flex items-center gap-2 rounded-full bg-[var(--red)] px-6 py-3 text-xs font-black text-white hover:bg-[var(--red-dark)] transition shadow-md"
+                  <BookingButton
+                    variant="primary"
+                    size="sm"
+                    course="Beginner Driving Course"
                   >
-                    <span>Book Lessons with Richard</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                    Book Lessons with Richard
+                  </BookingButton>
                   <Link
                     href="/reviews"
                     className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-6 py-3 text-xs font-black text-[var(--navy)] hover:bg-slate-50 transition"

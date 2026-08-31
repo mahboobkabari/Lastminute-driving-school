@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrustBar } from "@/components/TrustBar";
 import { Button } from "@/components/Button";
+import { BookingButton } from "@/components/BookingModal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { CourseCard } from "@/components/CourseCard";
 import { ReviewCard } from "@/components/ReviewCard";
@@ -63,9 +64,9 @@ export default function HomePage() {
 
             {/* Action Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row gap-3.5">
-              <Button href="/book" variant="primary" size="lg">
+              <BookingButton variant="primary" size="lg">
                 Book a Driving Lesson
-              </Button>
+              </BookingButton>
               <Button href="/courses" variant="outline" size="lg">
                 Explore Courses
               </Button>

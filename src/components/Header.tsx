@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { site } from "@/data/site";
 import { Menu, Phone, X, Star, ArrowRight, ChevronRight, MapPin } from "./Icon";
+import { useBookingModal } from "./BookingModal";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -23,6 +24,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { openBookingModal } = useBookingModal();
 
   // Automatically close mobile menu whenever pathname changes
   useEffect(() => {
@@ -150,6 +152,10 @@ export function Header() {
             {/* Primary Booking Button */}
             <Link
               href="/book"
+              onClick={(e) => {
+                e.preventDefault();
+                openBookingModal();
+              }}
               style={{ color: "#ffffff", backgroundColor: "#d71920" }}
               className="btn-book-cta hidden sm:inline-flex items-center gap-1.5 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-black tracking-tight text-white shadow-md shadow-red-900/30 transition-all hover:bg-[#b51218] hover:-translate-y-0.5"
             >
@@ -271,7 +277,11 @@ export function Header() {
 
                   <Link
                     href="/book"
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpen(false);
+                      openBookingModal();
+                    }}
                     style={{ color: "#ffffff", backgroundColor: "#d71920" }}
                     className="flex items-center justify-center gap-2 rounded-xl bg-[#d71920] py-3.5 sm:py-4 text-center text-base font-black text-white shadow-lg shadow-red-900/40 transition hover:bg-[#b51218] active:scale-[0.99]"
                   >

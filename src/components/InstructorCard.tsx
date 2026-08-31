@@ -1,13 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Check, Star, Shield, Car, ArrowRight } from "./Icon";
 import { Instructor } from "@/data/instructors";
+import { useBookingModal } from "./BookingModal";
 
 export interface InstructorCardProps {
   instructor: Instructor;
 }
 
 export function InstructorCard({ instructor }: InstructorCardProps) {
+  const { openBookingModal } = useBookingModal();
   const { name, role, bio, teachingStyle, vehicle, areasCovered, image, highlights } = instructor;
 
   return (
@@ -87,6 +91,10 @@ export function InstructorCard({ instructor }: InstructorCardProps) {
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Link
               href="/book"
+              onClick={(e) => {
+                e.preventDefault();
+                openBookingModal({ course: "Beginner Driving Course" });
+              }}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--red)] px-6 py-3.5 text-sm font-black text-white transition hover:bg-[var(--red-dark)] shadow-md shadow-red-900/20"
             >
               <span>Book Lessons with {name}</span>

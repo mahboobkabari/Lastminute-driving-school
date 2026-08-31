@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { site } from "@/data/site";
+import { BookingModalProvider } from "@/components/BookingModal";
 
 const siteUrl = site.url;
 
@@ -199,7 +200,9 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <div id="main-content">{children}</div>
+        <BookingModalProvider>
+          <div id="main-content">{children}</div>
+        </BookingModalProvider>
       </body>
     </html>
   );

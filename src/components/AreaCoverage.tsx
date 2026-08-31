@@ -1,9 +1,13 @@
+"use client";
+
 import { coverageAreas, nearbyTestCentres } from "@/data/coverage";
 import { site } from "@/data/site";
 import { MapPin, Car, Shield, ArrowRight } from "./Icon";
+import { useBookingModal } from "./BookingModal";
 import Link from "next/link";
 
 export function AreaCoverage() {
+  const { openBookingModal } = useBookingModal();
   return (
     <div className="space-y-12">
       {/* Postcodes Grid */}
@@ -73,6 +77,10 @@ export function AreaCoverage() {
           </div>
           <Link
             href="/book"
+            onClick={(e) => {
+              e.preventDefault();
+              openBookingModal();
+            }}
             className="inline-flex items-center gap-2 rounded-full bg-[var(--red)] px-6 py-3 text-xs font-black text-white hover:bg-[var(--red-dark)] shadow-md shadow-red-900/20"
           >
             <span>Check Pickup Availability</span>

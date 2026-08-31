@@ -1,6 +1,9 @@
+"use client";
+
 import { site } from "@/data/site";
 import { Button } from "./Button";
 import { Phone, Star, Shield } from "./Icon";
+import { useBookingModal } from "./BookingModal";
 
 export function CallToAction({
   title = "Ready to start learning to drive with confidence?",
@@ -13,6 +16,8 @@ export function CallToAction({
   primaryAction?: { label: string; href: string };
   secondaryAction?: { label: string; href: string };
 }) {
+  const { openBookingModal } = useBookingModal();
+
   return (
     <section className="container py-16 sm:py-24">
       <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#071a33] via-[#0b274c] to-[#071a33] p-8 text-white shadow-2xl shadow-slate-950/20 sm:p-14 lg:p-16 border border-white/15">
@@ -42,7 +47,16 @@ export function CallToAction({
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button href={primaryAction.href} variant="primary" size="lg">
+              <Button
+                href={primaryAction.href}
+                variant="primary"
+                size="lg"
+                onClick={
+                  primaryAction.href === "/book"
+                    ? () => openBookingModal()
+                    : undefined
+                }
+              >
                 {primaryAction.label}
               </Button>
               <Button href={secondaryAction.href} variant="outline" size="lg">

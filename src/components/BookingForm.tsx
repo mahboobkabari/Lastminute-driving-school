@@ -26,9 +26,14 @@ interface FormErrors {
   pickupLocation?: string;
 }
 
-function BookingFormInner() {
+export interface BookingFormProps {
+  initialCourse?: string;
+  isModal?: boolean;
+}
+
+function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) {
   const searchParams = useSearchParams();
-  const prefilledCourse = searchParams.get("course") || searchParams.get("package") || "";
+  const prefilledCourse = initialCourse || searchParams.get("course") || searchParams.get("package") || "";
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<FormState>(() => ({
@@ -43,6 +48,13 @@ function BookingFormInner() {
     experienceLevel: "Complete Beginner",
     message: "",
   }));
+
+  // Update course when initialCourse prop changes
+  useEffect(() => {
+    if (initialCourse) {
+      setFormData((prev) => ({ ...prev, course: initialCourse }));
+    }
+  }, [initialCourse]);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -106,7 +118,11 @@ function BookingFormInner() {
   return (
     <div
       ref={containerRef}
-      className="scroll-mt-24 sm:scroll-mt-28 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/5 sm:p-10"
+      className={`scroll-mt-24 sm:scroll-mt-28 rounded-3xl ${
+        isModal
+          ? "border-0 bg-transparent p-0 sm:p-2 shadow-none"
+          : "border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/5 sm:p-10"
+      }`}
     >
       {submitted ? (
         <div
@@ -396,10 +412,10 @@ function BookingFormInner() {
   );
 }
 
-export function BookingForm() {
+export function BookingForm(props: BookingFormProps = {}) {
   return (
     <Suspense fallback={<div className="p-8 text-center text-sm font-bold text-slate-500">Loading booking form...</div>}>
-      <BookingFormInner />
+      <BookingFormInner {...props} />
     </Suspense>
   );
 }

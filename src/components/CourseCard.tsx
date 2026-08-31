@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Check, ArrowRight } from "./Icon";
 import { Course } from "@/data/courses";
+import { useBookingModal } from "./BookingModal";
 
 export interface CourseCardProps {
   course: Course;
@@ -8,6 +11,7 @@ export interface CourseCardProps {
 }
 
 export function CourseCard({ course, compact = false }: CourseCardProps) {
+  const { openBookingModal } = useBookingModal();
   const {
     slug,
     title,
@@ -161,6 +165,10 @@ export function CourseCard({ course, compact = false }: CourseCardProps) {
 
         <Link
           href={`/book?course=${encodeURIComponent(title)}`}
+          onClick={(e) => {
+            e.preventDefault();
+            openBookingModal({ course: title });
+          }}
           className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-black tracking-tight transition-all ${
             featured
               ? "bg-[var(--red)] text-white hover:bg-[var(--red-dark)] shadow-md shadow-red-900/40"

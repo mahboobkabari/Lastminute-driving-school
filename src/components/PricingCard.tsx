@@ -1,12 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import { Check, ArrowRight } from "./Icon";
 import { PricingPackage } from "@/data/pricing";
+import { useBookingModal } from "./BookingModal";
 
 export interface PricingCardProps {
   pkg: PricingPackage;
 }
 
 export function PricingCard({ pkg }: PricingCardProps) {
+  const { openBookingModal } = useBookingModal();
   const { name, price, unit, summary, idealFor, features, isPopular, badge, savingsNote } = pkg;
 
   return (
@@ -76,6 +80,10 @@ export function PricingCard({ pkg }: PricingCardProps) {
       <div className="mt-8 border-t border-slate-100 pt-6">
         <Link
           href={`/book?package=${encodeURIComponent(name)}`}
+          onClick={(e) => {
+            e.preventDefault();
+            openBookingModal({ course: name });
+          }}
           className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-center text-sm font-black tracking-tight transition-all ${
             isPopular
               ? "bg-[var(--red)] text-white hover:bg-[var(--red-dark)] shadow-lg shadow-red-900/20"
