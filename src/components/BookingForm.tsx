@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { FormEvent, useState, useEffect, Suspense } from "react";
+import { FormEvent, useState, useEffect, Suspense, useRef } from "react";
 import { courses } from "@/data/courses";
 import { Check, Shield, Clock, Calendar, MapPin, Sparkles } from "./Icon";
 
@@ -29,6 +29,7 @@ interface FormErrors {
 function BookingFormInner() {
   const searchParams = useSearchParams();
   const prefilledCourse = searchParams.get("course") || searchParams.get("package") || "";
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<FormState>(() => ({
     fullName: "",
@@ -43,10 +44,15 @@ function BookingFormInner() {
     message: "",
   }));
 
-
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (submitted && containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [submitted]);
 
   function validate(): boolean {
     const errs: FormErrors = {};
@@ -98,7 +104,10 @@ function BookingFormInner() {
   const errorStyles = "border-red-500 bg-red-50/20";
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/5 sm:p-10">
+    <div
+      ref={containerRef}
+      className="scroll-mt-24 sm:scroll-mt-28 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/5 sm:p-10"
+    >
       {submitted ? (
         <div
           role="status"
@@ -141,8 +150,11 @@ function BookingFormInner() {
                 experienceLevel: "Complete Beginner",
                 message: "",
               });
+              setTimeout(() => {
+                containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
             }}
-            className="mt-6 inline-flex rounded-full bg-[var(--navy)] px-6 py-3 text-xs font-black text-white hover:bg-[var(--navy-2)]"
+            className="mt-6 inline-flex rounded-full bg-[var(--navy)] px-6 py-3 text-xs font-black text-white hover:bg-[var(--navy-2)] cursor-pointer"
           >
             Submit Another Lesson Request
           </button>
