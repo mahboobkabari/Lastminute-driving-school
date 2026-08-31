@@ -30,12 +30,20 @@ export interface SiteConfig {
   }[];
 }
 
+const defaultSiteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://lastminute-driving-school.vercel.app");
+
 export const site: SiteConfig = {
   name: "Lastminute Driving School",
   tagline: "Learn to Drive with Confidence in London",
   description:
     "Professional, patient driving tuition in West London and surrounding areas. Tailored manual and automatic driving lessons, test route preparation, and confidence-building coaching.",
-  url: "https://lastminutedrivingschool.co.uk",
+  url: defaultSiteUrl,
   phone: "+44 7984 210509",
   phoneDisplay: "07984 210509",
   email: "info@lastminutedrivingschool.co.uk",

@@ -53,9 +53,19 @@ export const metadata: Metadata = {
     siteName: site.name,
     images: [
       {
-        url: "/images/og-image.png",
-        width: 1024,
-        height: 517,
+        url: `${siteUrl}/images/og-image.jpg`,
+        secureUrl: `${siteUrl}/images/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        type: "image/jpeg",
+        alt: "Lastminute Driving School - Learn to Drive with Confidence in London",
+      },
+      {
+        url: `${siteUrl}/images/og-image.png`,
+        secureUrl: `${siteUrl}/images/og-image.png`,
+        width: 1200,
+        height: 630,
+        type: "image/png",
         alt: "Lastminute Driving School - Learn to Drive with Confidence in London",
       },
     ],
@@ -65,7 +75,7 @@ export const metadata: Metadata = {
     title: "Lastminute Driving School | Driving Lessons in London",
     description:
       "Patient, practical driving tuition across London W9 and surrounding West London areas. Rated 5.0 on Google with 82 reviews.",
-    images: ["/images/og-image.png"],
+    images: [`${siteUrl}/images/og-image.jpg`],
   },
   robots: {
     index: true,
@@ -92,7 +102,7 @@ const jsonLdSchema = {
   legalName: site.name,
   url: siteUrl,
   logo: `${siteUrl}/brand/lastminute-driving-school-logo.jpg`,
-  image: `${siteUrl}/images/og-image.png`,
+  image: `${siteUrl}/images/og-image.jpg`,
   description: site.description,
   telephone: site.phone,
   email: site.email,
