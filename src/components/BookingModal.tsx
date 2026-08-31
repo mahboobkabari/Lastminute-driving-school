@@ -63,10 +63,20 @@ export function BookingButton({
 export function BookingModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [prefilledCourse, setPrefilledCourse] = useState("");
+  const [canScrollDown, setCanScrollDown] = useState(false);
   const pathname = usePathname();
   const triggerRef = useRef<HTMLElement | null>(null);
   const modalContentRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const hasOverflow = el.scrollHeight > el.clientHeight + 10;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 20;
+    setCanScrollDown(hasOverflow && !atBottom);
+  }, []);
 
   const openBookingModal = useCallback(
     (options?: { course?: string }) => {
@@ -158,13 +168,18 @@ export function BookingModalProvider({ children }: { children: ReactNode }) {
     // Auto focus close button on open
     setTimeout(() => {
       closeButtonRef.current?.focus();
+      checkScroll();
     }, 100);
+
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = "";
+      window.removeEventListener("resize", handleResize);
     };
-  }, [isOpen]);
+  }, [isOpen, checkScroll]);
 
   return (
     <BookingModalContext.Provider
@@ -180,7 +195,7 @@ export function BookingModalProvider({ children }: { children: ReactNode }) {
       {/* Reusable Booking Form Modal Dialog */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-md overflow-hidden animate-fadeIn"
           role="dialog"
           aria-modal="true"
           aria-labelledby="booking-modal-title"
@@ -192,19 +207,19 @@ export function BookingModalProvider({ children }: { children: ReactNode }) {
         >
           <div
             ref={modalContentRef}
-            className="relative w-full max-w-2xl my-auto rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92dvh] animate-fadeIn"
+            className="relative w-full max-w-2xl my-auto rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[88dvh] animate-fadeIn min-w-0"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 sm:px-8 sm:py-5 bg-slate-50/80">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[var(--red)]">
-                  <Shield className="h-3.5 w-3.5" />
-                  <span>London W9 · West & NW Routes</span>
+            {/* Modal Header - Sticky & Stable */}
+            <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-100 px-5 py-3.5 sm:px-8 sm:py-4 bg-slate-50/95 backdrop-blur-md shrink-0">
+              <div className="min-w-0 pr-2">
+                <div className="flex items-center gap-2 text-[11px] sm:text-xs font-black uppercase tracking-wider text-[var(--red)] truncate">
+                  <Shield className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">London W9 · West & NW Routes</span>
                 </div>
                 <h2
                   id="booking-modal-title"
-                  className="mt-0.5 text-lg sm:text-xl font-black text-[var(--navy)]"
+                  className="mt-0.5 text-base sm:text-xl font-black text-[var(--navy)] truncate"
                 >
                   Request a Driving Lesson
                 </h2>
@@ -215,15 +230,47 @@ export function BookingModalProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={closeBookingModal}
                 aria-label="Close booking form modal"
-                className="grid h-11 w-11 place-items-center rounded-full text-slate-400 hover:bg-slate-200/60 hover:text-[var(--navy)] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)] cursor-pointer"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-400 hover:bg-slate-200/60 hover:text-[var(--navy)] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)] cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Modal Body Container with Smooth Internal Scroll */}
-            <div className="overflow-y-auto overscroll-contain p-4 sm:p-6 flex-1">
-              <BookingForm initialCourse={prefilledCourse} isModal={true} />
+            {/* Modal Body Container with Scroll Indicator */}
+            <div className="relative flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
+              <div
+                ref={scrollContainerRef}
+                onScroll={checkScroll}
+                role="region"
+                aria-label="Booking form content"
+                tabIndex={0}
+                className="overflow-y-auto overflow-x-hidden overscroll-contain p-4 sm:p-7 flex-1 min-w-0 modal-scrollbar focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-300"
+              >
+                <BookingForm initialCourse={prefilledCourse} isModal={true} />
+              </div>
+
+              {/* Bottom Gradient Fade Cue */}
+              <div
+                className={`pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent transition-opacity duration-300 ${
+                  canScrollDown ? "opacity-100" : "opacity-0"
+                }`}
+                aria-hidden="true"
+              />
+
+              {/* Floating Context-Aware Scroll Hint Badge on the Right */}
+              <div
+                className={`pointer-events-none absolute bottom-3 right-3 sm:bottom-4 sm:right-6 transition-all duration-300 z-10 ${
+                  canScrollDown
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-2 pointer-events-none"
+                }`}
+                aria-hidden="true"
+              >
+                <div className="flex items-center gap-1.5 rounded-full bg-[var(--navy)]/90 px-3 py-1 text-[11px] font-extrabold text-white shadow-md backdrop-blur-sm border border-white/20">
+                  <span>More below</span>
+                  <span className="animate-bounce inline-block">↓</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

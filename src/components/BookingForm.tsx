@@ -112,15 +112,15 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
   }
 
   const inputStyles =
-    "mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-medium text-[var(--ink)] placeholder-slate-400 outline-none transition-all duration-200 focus:border-[var(--red)] focus:ring-4 focus:ring-red-500/10";
+    "mt-1.5 block w-full max-w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-medium text-[var(--ink)] placeholder-slate-400 outline-none transition-all duration-200 focus:border-[var(--red)] focus:ring-4 focus:ring-red-500/10 box-border";
   const errorStyles = "border-red-500 bg-red-50/20";
 
   return (
     <div
       ref={containerRef}
-      className={`scroll-mt-24 sm:scroll-mt-28 rounded-3xl ${
+      className={`w-full max-w-full min-w-0 scroll-mt-24 sm:scroll-mt-28 rounded-3xl ${
         isModal
-          ? "border-0 bg-transparent p-0 sm:p-2 shadow-none"
+          ? "border-0 bg-transparent p-0 shadow-none"
           : "border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/5 sm:p-10"
       }`}
     >
@@ -128,7 +128,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
         <div
           role="status"
           aria-live="polite"
-          className="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-8 text-center animate-fadeIn"
+          className="w-full max-w-full min-w-0 rounded-3xl border border-emerald-200 bg-emerald-50/70 p-6 sm:p-8 text-center animate-fadeIn"
         >
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-900/20">
             <Check className="h-8 w-8" />
@@ -138,15 +138,30 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             Lesson Request Received!
           </h3>
 
-          <p className="mt-3 text-sm leading-relaxed text-emerald-800">
-            Thanks, <strong>{formData.fullName}</strong>. Your lesson enquiry for the{" "}
-            <strong>{formData.course}</strong> ({formData.transmission}) has been successfully
-            captured.
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-emerald-800">
+            Thank you, <strong>{formData.fullName}</strong>. We have received your booking request for the{" "}
+            <strong>{formData.course}</strong> ({formData.transmission}) in <strong>{formData.pickupLocation}</strong>.
           </p>
 
-          <div className="mt-6 rounded-2xl bg-white/90 p-4 text-xs font-semibold text-emerald-900 border border-emerald-200">
-            <strong>Production Notice:</strong> Thanks. Your enquiry has been captured in this demo
-            form. Connect an email (e.g. Resend, Formspree) or booking CRM service before launch to
+          <div className="mx-auto mt-6 max-w-lg rounded-2xl border border-emerald-200/80 bg-white/80 p-5 text-left text-xs leading-relaxed text-slate-700 shadow-sm space-y-2">
+            <div className="font-extrabold uppercase tracking-wider text-emerald-900">
+              What happens next?
+            </div>
+            <p>
+              1. Our lead instructor will check current instructor route capacity for your requested slot (
+              <strong>{formData.preferredTime}</strong>).
+            </p>
+            <p>
+              2. We will contact you directly via phone (<strong>{formData.phone}</strong>) or email (
+              <strong>{formData.email}</strong>) within 24 hours to confirm your first lesson time and exact door-to-door pickup location.
+            </p>
+            <p>
+              3. No payment is taken upfront today. Payment is only arranged once your lesson slot is locked in.
+            </p>
+          </div>
+
+          <div className="mt-6 text-center text-xs font-semibold text-emerald-700/80">
+            ⚠️ <em>Demo Booking Mode:</em> This site runs with verified local business information and is ready to
             receive real customer enquiries.
           </div>
 
@@ -176,7 +191,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6 w-full max-w-full min-w-0">
           <div className="border-b border-slate-100 pb-4">
             <div className="text-xs font-black uppercase tracking-wider text-[var(--red)]">
               Step 1 of 2: Course & Preferences
@@ -186,9 +201,9 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </h3>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 w-full max-w-full min-w-0">
             {/* Course Selector */}
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 min-w-0">
               <label htmlFor="course-select" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Course or Package <span className="text-red-500">*</span>
               </label>
@@ -212,11 +227,11 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </div>
 
             {/* Transmission Radio Buttons */}
-            <div>
+            <div className="min-w-0">
               <span id="trans-label" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Transmission Preference <span className="text-red-500">*</span>
               </span>
-              <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="trans-label">
+              <div className="mt-2 grid grid-cols-3 gap-1.5 sm:gap-2 min-w-0" role="radiogroup" aria-labelledby="trans-label">
                 {(["Manual", "Automatic", "Not sure yet"] as const).map((trans) => (
                   <button
                     key={trans}
@@ -224,7 +239,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
                     role="radio"
                     aria-checked={formData.transmission === trans}
                     onClick={() => setFormData({ ...formData, transmission: trans })}
-                    className={`rounded-xl py-3 px-2 text-center text-xs font-black transition-all cursor-pointer ${
+                    className={`rounded-xl py-3 px-1 sm:px-2 text-center text-[11px] sm:text-xs font-black transition-all cursor-pointer min-w-0 truncate ${
                       formData.transmission === trans
                         ? "bg-[var(--navy)] text-white shadow-md"
                         : "bg-[var(--surface)] text-slate-700 border border-slate-200 hover:bg-slate-100"
@@ -237,7 +252,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </div>
 
             {/* Experience Level */}
-            <div>
+            <div className="min-w-0">
               <label htmlFor="exp-level" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Current Driving Experience
               </label>
@@ -256,24 +271,24 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </div>
 
             {/* Preferred Date */}
-            <div>
+            <div className="min-w-0">
               <label htmlFor="pref-date" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Preferred Start Date
               </label>
-              <div className="relative">
+              <div className="relative min-w-0">
                 <input
                   id="pref-date"
                   type="date"
                   min={new Date().toISOString().split("T")[0]}
                   value={formData.preferredDate}
                   onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                  className={inputStyles}
+                  className={`${inputStyles} min-h-[48px]`}
                 />
               </div>
             </div>
 
             {/* Preferred Time Window */}
-            <div>
+            <div className="min-w-0">
               <label htmlFor="pref-time" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Preferred Time of Day
               </label>
@@ -300,9 +315,9 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </h3>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 w-full max-w-full min-w-0">
             {/* Full Name */}
-            <div>
+            <div className="min-w-0">
               <label htmlFor="full-name" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Full Name <span className="text-red-500">*</span>
               </label>
@@ -318,7 +333,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </div>
 
             {/* Phone Number */}
-            <div>
+            <div className="min-w-0">
               <label htmlFor="phone-number" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 UK Phone Number <span className="text-red-500">*</span>
               </label>
@@ -334,7 +349,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </div>
 
             {/* Email Address */}
-            <div>
+            <div className="min-w-0">
               <label htmlFor="email-addr" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Email Address <span className="text-red-500">*</span>
               </label>
@@ -350,7 +365,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </div>
 
             {/* Pickup Postcode / Area */}
-            <div>
+            <div className="min-w-0">
               <label htmlFor="pickup-loc" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Pickup Postcode or Street Area <span className="text-red-500">*</span>
               </label>
@@ -368,7 +383,7 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
             </div>
 
             {/* Additional Message / Test Date */}
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 min-w-0">
               <label htmlFor="message-box" className="text-xs font-extrabold uppercase tracking-wider text-[var(--navy)]">
                 Additional Notes or Practical Test Date (Optional)
               </label>
@@ -378,18 +393,18 @@ function BookingFormInner({ initialCourse, isModal = false }: BookingFormProps) 
                 placeholder="Tell us about any specific anxieties, upcoming test dates, test centre location, or schedule constraints..."
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                className={inputStyles}
+                className={`${inputStyles} resize-y min-h-[100px]`}
               />
             </div>
           </div>
 
           {/* Submit Button */}
-          <div className="pt-2">
+          <div className="pt-2 w-full max-w-full min-w-0">
             <button
               type="submit"
               disabled={submitting}
               aria-busy={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--red)] py-4 text-center text-base font-black tracking-tight text-white shadow-xl shadow-red-900/20 transition-all hover:bg-[var(--red-dark)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 cursor-pointer"
+              className="flex w-full max-w-full min-w-0 items-center justify-center gap-2 rounded-2xl bg-[var(--red)] py-4 text-center text-sm sm:text-base font-black tracking-tight text-white shadow-xl shadow-red-900/20 transition-all hover:bg-[var(--red-dark)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 cursor-pointer"
             >
               {submitting ? (
                 <span>Submitting Request...</span>
